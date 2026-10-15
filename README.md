@@ -2,69 +2,63 @@
 
 **A 5-second 768p clip in under 3 seconds.**
 
-Notes on **MiniMax H3** and **H3 Max**, the video models behind [h3max.pro](https://h3max.pro) — what they are, what fal changed, and the numbers each party published.
+Notes on **MiniMax H3** and **H3 Max**, the video models behind [h3max.pro](https://h3max.pro): what they are, how they differ, and the numbers behind them.
 
-Everything below is sourced from [MiniMax's H3 announcement](https://www.minimax.io/blog/minimax-h3) and [fal's H3 Max page](https://fal.ai/minimax-h3-max). The performance figures are **their published claims, not independent measurements**.
+The performance figures below come from MiniMax's H3 announcement and fal's H3 Max launch. They are **the vendors' published claims, not independent measurements**.
 
 ---
 
 ## The base model: MiniMax H3
 
-H3 is not a video model with extras bolted on. MiniMax describes it as a **general-purpose multimodal generation model** that takes text, images, video and audio as one unified context and generates across the same set.
+H3 is a **general-purpose multimodal generation model**. Text, images, video and audio go in as one unified context, and it can generate any of them.
 
-For video that means **up to 15 seconds at 2K, with native stereo sound** — the audio is generated jointly with the picture rather than dubbed on afterwards. Voice, sound effects and music are modelled together instead of by separate expert models, which is the part MiniMax argues was holding the previous generation back.
+For video, that means **up to 15 seconds at 2K with native stereo sound**. The audio is generated together with the picture, not dubbed on afterwards. Voice, sound effects and music are modelled jointly rather than by separate expert models.
 
-It also does image-to-image, image-to-video, audio-to-audio, audio-video-to-audio-video, multi-shot sequences, motion transfer between videos, and text and brand rendering that survives the generation.
+It also covers image-to-image, image-to-video, audio-to-audio, multi-shot sequences, motion transfer between videos, and text and brand rendering that holds up in the output.
 
 ### How it is built
 
 | Piece | What it does |
 |---|---|
-| **H3-Contextual Omni Representation** | Language as the bridge that unifies otherwise separate tasks. Source material runs through ~100K tokens of inference, distilled to ~4K on average. |
-| **H3-VAE tokenizer** | Redesigned from scratch for reconstruction quality — a **4× gain in effective sequence length**. |
-| **H3-Omni Transformer** | Splits the understanding and generation workloads apart, for **~30% more throughput**. |
-| **In-context Regeneration** | The base model regenerates its own low-resolution output up to 2K while keeping the original multimodal context intact. |
+| **H3-Contextual Omni Representation** | Uses language as the bridge between tasks. Source material runs through ~100K tokens of inference, distilled to ~4K on average. |
+| **H3-VAE tokenizer** | Rebuilt for reconstruction quality, with a **4× gain in effective sequence length**. |
+| **H3-Omni Transformer** | Separates understanding and generation workloads for **~30% more throughput**. |
+| **In-context Regeneration** | Regenerates its own low-resolution output up to 2K while keeping the original context. |
 
-MiniMax puts H3's cost at **under a third of mainstream models per second at 2K**, and **under half the price of mainstream 720p at 768p**. They also say model weights are planned for open release "in the coming days, subject to applicable laws and regulations."
+## The fast variant: H3 Max
 
-## What fal did: H3 Max
+H3 Max is H3 **post-trained by fal on new data**, tuned for prompt adherence and aesthetics, with much of the post-training compute spent on verifiable RL tasks. It was designed around fal's in-house diffusion inference engine, which is where the speed comes from.
 
-H3 Max is not a hosting arrangement. fal **post-trained the base model on significant new data**, tuned for prompt adherence and aesthetics, and spent "a huge portion of our post-training compute on verifiable RL tasks."
+The priority was **quality first, then as much speed as possible without losing it.**
 
-The part that explains the speed is architectural: fal designed **H3 Max around their own in-house inference engine**, which they have spent four years optimising for diffusion models. The model and the thing that runs it were shaped together.
-
-Their stated order of priorities: **quality first, then push speed as far as it goes without giving any of it back.**
-
-### The trade
+### H3 Max vs H3
 
 | | H3 Max | H3 |
 |---|---|---|
 | Built for | Speed and prompt adherence at 768p | Range |
-| Resolution | 480p, 768p | 2K |
+| Resolution | 480p, 768p | Up to 2K |
 | Reference-to-video, video editing | — | ✅ |
 | Native audio | — | ✅ |
 
-H3 Max gives up resolution and the editing modes to be fast at 768p. If you need 2K or reference-to-video, that is stock H3's job.
+H3 Max trades resolution and editing modes for speed at 768p. For 2K or reference-to-video, use H3.
 
 ## Speed
 
-fal's published figures for H3 Max:
-
-- **A 5-second 768p clip renders in under 3 seconds** — roughly **2.5 seconds** of that is inference
-- **A 15-second clip takes around 15 seconds**
-- **~35× the throughput** of the official MiniMax H3 endpoint
+- **5-second 768p clip in under 3 seconds** (~2.5 s of inference)
+- **15-second clip in about 15 seconds**
+- **~35× the throughput** of the official H3 endpoint
 - **~15× faster** than models of comparable quality, on average
 
-The second number is the one that changes how the thing feels to use: a render finishes faster than it takes to read the prompt back. That is the difference between a tool you sit in front of and a job you check on later.
+A render finishes faster than you can re-read the prompt. It feels like a tool you use live, not a job you check on later.
 
 ## Benchmarks
 
-Both are human-preference Elo leaderboards, and H3 Max sits first on both:
+H3 Max ranks first on both human-preference Elo leaderboards:
 
-| Leaderboard | Elo | Detail |
+| Leaderboard | Elo | Rank |
 |---|---|---|
 | **Design Arena** | 1,341 | 1st |
-| **Artificial Analysis** | 1,201 | 1st, 95% CI ±11 over 2,177 samples |
+| **Artificial Analysis** | 1,201 | 1st (95% CI ±11, 2,177 samples) |
 
 ## Specs
 
@@ -74,19 +68,11 @@ Both are human-preference Elo leaderboards, and H3 Max sits first on both:
 | **Resolutions** | 480p, 768p (default) |
 | **16:9 output** | 1344×768 at 24 fps |
 | **Aspect ratios** (text-to-video) | 21:9, 16:9, 4:3, 1:1, 3:4, 9:16 |
-| **Endpoints** | text-to-video, image-to-video (optional end frame) |
-
-Reference-to-video was listed as arriving later in the same week as launch.
-
-## Pricing
-
-**$0.08 per second at 768p** — $4.80 a minute, so a 15-second clip is **$1.20**.
-
-fal launched it at **50% off for the first 14 days** ($0.04/second, $0.60 for 15 seconds). Check the [model page](https://fal.ai/minimax-h3-max) for what is current before quoting these.
+| **Modes** | Text-to-video, image-to-video (optional end frame) |
 
 ## Try it
 
-[**h3max.pro**](https://h3max.pro) runs both models with every parameter the endpoints expose — no API key, no install. Credits are charged per second of output, a failed render is refunded in full, and new accounts start with free credits.
+[**h3max.pro**](https://h3max.pro) runs both H3 and H3 Max with every parameter exposed. No API key, no install. Credits are charged per second of output, failed renders are fully refunded, and new accounts get free credits.
 
 ---
 
@@ -94,52 +80,41 @@ fal launched it at **50% off for the first 14 days** ($0.04/second, $0.60 for 15
 
 **5 秒 768p 视频，3 秒内出片。**
 
-这是 [h3max.pro](https://h3max.pro) 背后两个模型的资料整理：**MiniMax H3** 和 **H3 Max**。以下内容全部来自 [MiniMax 的 H3 发布博客](https://www.minimax.io/blog/minimax-h3)和 [fal 的 H3 Max 页面](https://fal.ai/minimax-h3-max)，**性能数字是他们各自公布的说法，不是独立实测**。
+这里整理了 [h3max.pro](https://h3max.pro) 背后的两个视频模型：**MiniMax H3** 和 **H3 Max**。性能数据来自 MiniMax 的 H3 发布说明和 fal 的 H3 Max 发布信息，**均为官方公布数字，并非独立实测**。
 
 ### H3：底座模型
 
-H3 不是一个「视频模型加了点别的」，MiniMax 把它定位成**通用多模态生成模型**——文本、图像、视频、音频作为同一份上下文进去，也从同一套里生成出来。
+H3 是一个**通用多模态生成模型**：文本、图像、视频、音频作为同一份上下文输入，也可以生成其中任意一种。
 
-落到视频上就是**最长 15 秒、2K 分辨率、原生立体声**——声音和画面是一起生成的，不是事后配上去的。人声、音效、音乐被放在一起建模，而不是各用一个专家模型，MiniMax 认为这正是上一代的瓶颈所在。
+视频方面支持**最长 15 秒、2K 分辨率、原生立体声**。声音与画面一起生成，而不是后期配音；人声、音效和音乐统一建模，不再依赖各自独立的专家模型。
 
-架构上有四块：**H3-Contextual Omni Representation**（用语言当桥梁统一各类任务，素材经约 10 万 token 推理、平均压到约 4K token）、**H3-VAE 分词器**（重做，有效序列长度提升 **4 倍**）、**H3-Omni Transformer**（把理解和生成两类负载拆开，吞吐提升约 **30%**）、**In-context Regeneration**（把自己的低分辨率结果重新生成到 2K，同时保留原始多模态上下文）。
+此外还支持图生图、图生视频、音频生成、多镜头序列、视频间动作迁移，以及稳定的文字与品牌元素渲染。
 
-价格方面 MiniMax 称：2K 每秒成本**不到主流模型的三分之一**，768p **不到主流 720p 的一半**。模型权重计划「在未来几天内」开放。
+架构由四部分组成：**H3-Contextual Omni Representation**（以语言为桥梁统一各类任务，素材经约 10 万 token 推理后平均压缩到约 4K token）、**H3-VAE 分词器**（重新设计，有效序列长度提升 **4 倍**）、**H3-Omni Transformer**（拆分理解与生成负载，吞吐提升约 **30%**）、**In-context Regeneration**（在保留原始上下文的前提下，把低分辨率结果重新生成到 2K）。
 
-### H3 Max：fal 做了什么
+### H3 Max：更快的版本
 
-不是简单托管。fal **用大量新数据对底座做了后训练**，专门调提示词遵循度和画面美感，并把「很大一部分后训练算力花在了可验证的 RL 任务上」。
+H3 Max 是 fal 在 H3 基础上**用新数据做了后训练**的版本，重点优化提示词遵循度和画面美感，并在可验证的 RL 任务上投入了大量算力。它围绕 fal 自研的扩散模型推理引擎设计，这也是速度的来源。原则是：**先保质量，再在不损失质量的前提下把速度推到极限。**
 
-速度的真正来源是架构层面的：fal **围绕自家推理引擎来设计 H3 Max**——这套引擎他们针对扩散模型优化了四年。模型和跑它的东西是一起长出来的。他们自述的优先级是：**先保质量，再把速度推到不损失质量为止。**
+取舍很明确：H3 Max 放弃 2K、参考视频生成和视频编辑，换来 768p 下的速度和遵循度。需要 2K 或参考视频生成时，请用 H3。
 
-代价是取舍：H3 Max 放弃了 2K、参考视频和视频编辑，换 768p 下的速度和遵循度。要 2K 或参考视频生成，那是原版 H3 的活。
+### 速度
 
-### 速度（fal 公布数字）
-
-- **5 秒 768p 片段 3 秒内出片**，其中推理约 **2.5 秒**
+- **5 秒 768p 片段 3 秒内出片**（推理约 **2.5 秒**）
 - **15 秒片段约 15 秒**
-- 吞吐约为 MiniMax 官方 H3 端点的 **35 倍**
-- 相较同等质量的模型平均**快 15 倍**
+- 吞吐约为 H3 官方端点的 **35 倍**
+- 平均比同等质量模型**快 15 倍**
 
-第二个数字才是真正改变使用体感的：出片比你把提示词读一遍还快。这是「坐在那儿用的工具」和「提交完过会儿回来看」的区别。
+出片比你重读一遍提示词还快，用起来是实时工具，而不是提交后再回来看的任务。
 
 ### 榜单
 
-两个都是人类偏好 Elo 榜，H3 Max 都排第一：**Design Arena** Elo **1,341**；**Artificial Analysis** Elo **1,201**（95% 置信区间 ±11，2,177 个样本）。
+H3 Max 在两个人类偏好 Elo 榜上均排名第一：**Design Arena** Elo **1,341**；**Artificial Analysis** Elo **1,201**（95% 置信区间 ±11，2,177 个样本）。
 
-### 规格与价格
+### 规格
 
-时长 5–15 秒；分辨率 480p / 768p（默认 768p）；16:9 输出 1344×768 @ 24fps；文生视频支持 21:9 / 16:9 / 4:3 / 1:1 / 3:4 / 9:16；端点为文生视频和图生视频（可选结束帧），参考视频生成在发布同周稍晚上线。
+时长 5–15 秒；分辨率 480p / 768p（默认 768p）；16:9 输出 1344×768 @ 24fps；文生视频支持 21:9 / 16:9 / 4:3 / 1:1 / 3:4 / 9:16；支持文生视频和图生视频（可选结束帧）。
 
-**768p 每秒 $0.08**（每分钟 $4.80，15 秒即 $1.20）。发布首 14 天五折（每秒 $0.04，15 秒 $0.60）。引用前请以[模型页](https://fal.ai/minimax-h3-max)上的当前价格为准。
+### 立即体验
 
-### 上手
-
-[**h3max.pro**](https://h3max.pro) 两个模型都能用，端点暴露的参数全部可调，不需要 API key。按输出秒数计费，生成失败全额退还积分，新用户注册赠送积分。
-
----
-
-## 资料来源
-
-- [MiniMax H3 announcement](https://www.minimax.io/blog/minimax-h3)
-- [fal — MiniMax H3 Max](https://fal.ai/minimax-h3-max)
+[**h3max.pro**](https://h3max.pro) 同时提供 H3 和 H3 Max，所有参数均可调，无需 API key、无需安装。按输出秒数计费，生成失败全额退还积分，新用户注册即送积分。
